@@ -14,7 +14,7 @@
 extern void * pvPortMalloc( size_t xWantedSize );
 extern void vPortFree( void * pv );
 
-#define assert_fun(x) while( !(x) )
+#define assert_fun(x) 
 
 /*
  * Interface section used for `makeheaders`.
@@ -64,7 +64,7 @@ arraylist* arraylist_create( unsigned int capacity )
 /**
  * Allocate sufficient array capacity for at least `size` elements.
  */
-void arraylist_allocate(arraylist* l, unsigned int size)
+unsigned int  arraylist_allocate(arraylist* l, unsigned int size)
 {
 	assert_fun(size > 0);
 	if (size > l->capacity) {
@@ -78,11 +78,12 @@ void arraylist_allocate(arraylist* l, unsigned int size)
 			vPortFree(  l->body );
 			l->body = buf;
 			l->capacity = new_capacity;
-			
+			return 1;
 		}
 		assert_fun(buf);
 		
 	}
+	return 0;
 }
 
 /** 
@@ -107,6 +108,9 @@ void arraylist_add(arraylist* l, void* item)
 void* arraylist_pop(arraylist* l)
 {
 	assert_fun(l->size > 0);
+	if( l->size==0 ){
+		return NULL;
+	}
 	return l->body[--l->size];
 }
 
@@ -116,16 +120,23 @@ void* arraylist_pop(arraylist* l)
 void* arraylist_get(arraylist* l, unsigned int index)
 {
 	assert_fun(index < l->size);
+	if( l->size==0 ){
+		return NULL;
+	}
 	return l->body[index];
 }
 
 /**
  * Replace item at index with given value.
  */
-void arraylist_set(arraylist* l, unsigned int index, void* value)
+void* arraylist_set(arraylist* l, unsigned int index, void* value)
 {
 	assert_fun(index < l->size);
+	if( l->size==0 ){
+		return NULL;
+	}
 	l->body[index] = value;
+	return &l->body[index];
 }
 
 /**
@@ -216,6 +227,9 @@ void arraylist_splice(arraylist* l, arraylist* source, unsigned int index)
 
 void arraylist_destroy(arraylist* l)
 {
+	l->size = 0;
+	l->capacity = 0;
+	l->body = 0;
 	vPortFree(l->body);
 	vPortFree(l);
 }
