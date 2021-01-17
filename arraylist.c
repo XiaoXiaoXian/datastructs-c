@@ -7,8 +7,14 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
+#include <stdint.h>
+#include <stddef.h>
 #include "arraylist.h"
+
+extern void * pvPortMalloc( size_t xWantedSize );
+extern void vPortFree( void * pv );
+
+#define assert_fun(x)
 
 /*
  * Interface section used for `makeheaders`.
@@ -41,14 +47,17 @@ struct arraylist {
 /**
  * Create a new, empty arraylist.
  */
-arraylist* arraylist_create()
+arraylist* arraylist_create( unsigned int capacity )
 {
-	arraylist* new_list = malloc(sizeof(arraylist));
+	if( capacity ==0 ){
+		capacity = ARRAYLIST_INITIAL_CAPACITY;
+	}
+	arraylist* new_list = pvPortMalloc(sizeof(arraylist));
 	new_list->size = 0;
 	// Allocate the array
-	new_list->body = malloc(sizeof(void*) * ARRAYLIST_INITIAL_CAPACITY);
-	assert(new_list->body);
-	new_list->capacity = ARRAYLIST_INITIAL_CAPACITY;
+	new_list->body = pvPortMalloc(sizeof(void*) * capacity);
+	assert_fun(new_list->body);
+	new_list->capacity = capacity;
 	return new_list;
 }
 
@@ -57,15 +66,22 @@ arraylist* arraylist_create()
  */
 void arraylist_allocate(arraylist* l, unsigned int size)
 {
-	assert(size > 0);
+	assert_fun(size > 0);
 	if (size > l->capacity) {
 		unsigned int new_capacity = l->capacity;
 		while (new_capacity < size) {
 			new_capacity *= 2;
 		}
-		l->body = realloc(l->body, sizeof(void*) * new_capacity);
-		assert(l->body);
-		l->capacity = new_capacity;
+		void * buf=pvPortMalloc( sizeof(void*) * new_capacity );
+		if( buf ){
+			memcpy( buf ,l->body ,  sizeof(void*)*l->capacity );
+			vPortFree(  l->body );
+			l->body = buf;
+			l->capacity = new_capacity;
+			
+		}
+		assert_fun(buf);
+		
 	}
 }
 
@@ -90,7 +106,7 @@ void arraylist_add(arraylist* l, void* item)
  */
 void* arraylist_pop(arraylist* l)
 {
-	assert(l->size > 0);
+	assert_fun(l->size > 0);
 	return l->body[--l->size];
 }
 
@@ -99,7 +115,7 @@ void* arraylist_pop(arraylist* l)
  */
 void* arraylist_get(arraylist* l, unsigned int index)
 {
-	assert(index < l->size);
+	assert_fun(index < l->size);
 	return l->body[index];
 }
 
@@ -108,7 +124,7 @@ void* arraylist_get(arraylist* l, unsigned int index)
  */
 void arraylist_set(arraylist* l, unsigned int index, void* value)
 {
-	assert(index < l->size);
+	assert_fun(index < l->size);
 	l->body[index] = value;
 }
 
@@ -150,8 +166,8 @@ void arraylist_clear(arraylist* l)
  */
 arraylist* arraylist_slice(arraylist* l, unsigned int index, unsigned int length)
 {
-	assert(index + length <= l->size);
-	arraylist* new_list = arraylist_create();
+	assert_fun(index + length <= l->size);
+	arraylist* new_list = arraylist_create(0);
 	arraylist_allocate(new_list, length);
 	memmove(new_list->body, l->body + index, length * sizeof(void*));
 	new_list->size = length;
@@ -200,7 +216,7 @@ void arraylist_splice(arraylist* l, arraylist* source, unsigned int index)
 
 void arraylist_destroy(arraylist* l)
 {
-	free(l->body);
-	free(l);
+	vPortFree(l->body);
+	vPortFree(l);
 }
 

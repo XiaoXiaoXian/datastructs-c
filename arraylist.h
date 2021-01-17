@@ -15,7 +15,7 @@ void *arraylist_pop(arraylist *l);
 void arraylist_add(arraylist *l,void *item);
 inline unsigned int arraylist_size(arraylist *l);
 void arraylist_allocate(arraylist *l,unsigned int size);
-arraylist *arraylist_create();
+arraylist *arraylist_create( unsigned int capacity );
 #define arraylist_iterate(l, index, item) \
 	for (index = 0, item = l->body[0]; index < l->size; item = l->body[++index])
 struct arraylist {
