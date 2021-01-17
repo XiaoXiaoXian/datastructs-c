@@ -14,7 +14,7 @@
 extern void * pvPortMalloc( size_t xWantedSize );
 extern void vPortFree( void * pv );
 
-#define assert_fun(x)
+#define assert_fun(x) while( !(x) )
 
 /*
  * Interface section used for `makeheaders`.
