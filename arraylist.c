@@ -123,6 +123,9 @@ void* arraylist_get(arraylist* l, unsigned int index)
 	if( l->size==0 ){
 		return NULL;
 	}
+	else if( index>=l->size ){
+			return NULL;
+	}
 	return l->body[index];
 }
 

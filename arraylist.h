@@ -1,5 +1,6 @@
 /* This file was automatically generated.  Do not edit! */
-
+#ifndef __ARRAYLIST__H_
+#define __ARRAYLIST__H_
 
 typedef struct arraylist arraylist;
 void arraylist_destroy(arraylist *l);
@@ -65,3 +66,5 @@ struct arraylist {
 	void** body; // Pointer to allocated memory for items (of size capacity * sizeof(void*))
 };
 #define INTERFACE 0
+
+#endif
